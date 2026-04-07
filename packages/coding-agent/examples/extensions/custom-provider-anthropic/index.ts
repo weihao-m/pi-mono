@@ -30,6 +30,7 @@ import {
 	type Context,
 	calculateCost,
 	createAssistantMessageEventStream,
+	type DocumentContent,
 	type ImageContent,
 	type Message,
 	type Model,
@@ -186,8 +187,8 @@ function sanitizeSurrogates(text: string): string {
 }
 
 function convertContentBlocks(
-	content: (TextContent | ImageContent)[],
-): string | Array<{ type: "text"; text: string } | { type: "image"; source: any }> {
+	content: (TextContent | ImageContent | DocumentContent)[],
+): string | Array<{ type: "text"; text: string } | { type: "image"; source: any } | { type: "document"; source: any }> {
 	const hasImages = content.some((c) => c.type === "image");
 	if (!hasImages) {
 		return sanitizeSurrogates(content.map((c) => (c as TextContent).text).join("\n"));
