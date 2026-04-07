@@ -147,16 +147,29 @@ export function convertResponsesMessages<TApi extends Api>(
 							text: sanitizeSurrogates(item.text),
 						} satisfies ResponseInputText;
 					}
+					if (item.type === "document") {
+						return {
+							type: "input_file",
+							file_data: `data:${item.mimeType};base64,${item.data}`,
+							...(item.filename && { filename: item.filename }),
+						} as ResponseInputContent;
+					}
 					return {
 						type: "input_image",
 						detail: "auto",
 						image_url: `data:${item.mimeType};base64,${item.data}`,
 					} satisfies ResponseInputImage;
 				});
-				if (content.length === 0) continue;
+				let filteredContent = !model.input.includes("image")
+					? content.filter((c) => c.type !== "input_image")
+					: content;
+				filteredContent = !model.input.includes("document")
+					? filteredContent.filter((c) => (c as any).type !== "input_file")
+					: filteredContent;
+				if (filteredContent.length === 0) continue;
 				messages.push({
 					role: "user",
-					content,
+					content: filteredContent,
 				});
 			}
 		} else if (msg.role === "assistant") {

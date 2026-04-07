@@ -491,7 +491,7 @@ function toChatMessages(messages: Message[], supportsImages: boolean): ChatCompl
 			}
 			const hadImages = msg.content.some((item) => item.type === "image");
 			const content: ContentChunk[] = msg.content
-				.filter((item) => item.type === "text" || supportsImages)
+				.filter((item) => item.type === "text" || (item.type === "image" && supportsImages))
 				.map((item) => {
 					if (item.type === "text") return { type: "text", text: sanitizeSurrogates(item.text) };
 					return { type: "image_url", imageUrl: `data:${item.mimeType};base64,${item.data}` };
