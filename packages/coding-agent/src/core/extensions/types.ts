@@ -1695,7 +1695,7 @@ export interface ProviderModelConfig {
 	/** Maps pi thinking levels to provider/model-specific values; null marks a level unsupported. */
 	thinkingLevelMap?: Model<Api>["thinkingLevelMap"];
 	/** Supported input types. */
-	input: ("text" | "image")[];
+	input: ("text" | "image" | "document")[];
 	/** Provider input limits and cache-safe image preprocessing metadata. */
 	inputLimits?: Model<Api>["inputLimits"];
 	/** Per-million-token cost rates and optional request-wide input pricing tiers. */
