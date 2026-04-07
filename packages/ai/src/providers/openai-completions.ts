@@ -793,7 +793,9 @@ export function convertMessages(
 					content: sanitizeSurrogates(msg.content),
 				});
 			} else {
-				const content: ChatCompletionContentPart[] = msg.content.map((item): ChatCompletionContentPart => {
+				// Filter out document blocks — completions API doesn't support file inputs
+				const supportedItems = msg.content.filter((item) => item.type !== "document");
+				const content: ChatCompletionContentPart[] = supportedItems.map((item): ChatCompletionContentPart => {
 					if (item.type === "text") {
 						return {
 							type: "text",
