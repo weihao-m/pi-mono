@@ -33,6 +33,7 @@ import type {
 	AssistantMessage,
 	CacheRetention,
 	Context,
+	DocumentContent,
 	ImageContent,
 	Model,
 	ProviderEnv,
@@ -706,11 +707,16 @@ function createRequiredTextBlock(text: string): ContentBlock.TextMember {
 	return createNonBlankTextBlock(text) ?? { text: EMPTY_TEXT_PLACEHOLDER };
 }
 
-function convertToolResultContent(content: (TextContent | ImageContent)[]): ToolResultContentBlock[] {
+function convertToolResultContent(
+	content: (TextContent | ImageContent | DocumentContent)[],
+): ToolResultContentBlock[] {
 	const result: ToolResultContentBlock[] = [];
 	for (const c of content) {
 		if (c.type === "image") {
 			result.push({ image: createImageBlock(c.mimeType, c.data) });
+		} else if (c.type === "document") {
+			// Bedrock Converse does not support documents in tool results; skip them.
+			continue;
 		} else {
 			const textBlock = createNonBlankTextBlock(c.text);
 			if (textBlock) result.push(textBlock);
