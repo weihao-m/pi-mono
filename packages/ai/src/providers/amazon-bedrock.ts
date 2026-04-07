@@ -637,16 +637,18 @@ function convertMessages(
 					content:
 						typeof m.content === "string"
 							? [{ text: sanitizeSurrogates(m.content) }]
-							: m.content.map((c) => {
-									switch (c.type) {
-										case "text":
-											return { text: sanitizeSurrogates(c.text) };
-										case "image":
-											return { image: createImageBlock(c.mimeType, c.data) };
-										default:
-											throw new Error("Unknown user content type");
-									}
-								}),
+							: m.content
+									.filter((c) => c.type !== "document") // Bedrock document support TBD
+									.map((c) => {
+										switch (c.type) {
+											case "text":
+												return { text: sanitizeSurrogates(c.text) };
+											case "image":
+												return { image: createImageBlock(c.mimeType, c.data) };
+											default:
+												throw new Error("Unknown user content type");
+										}
+									}),
 				});
 				break;
 			case "assistant": {
@@ -721,11 +723,13 @@ function convertMessages(
 				toolResults.push({
 					toolResult: {
 						toolUseId: m.toolCallId,
-						content: m.content.map((c) =>
-							c.type === "image"
-								? { image: createImageBlock(c.mimeType, c.data) }
-								: { text: sanitizeSurrogates(c.text) },
-						),
+						content: m.content
+							.filter((c) => c.type !== "document")
+							.map((c) =>
+								c.type === "image"
+									? { image: createImageBlock(c.mimeType, c.data) }
+									: { text: sanitizeSurrogates((c as TextContent).text) },
+							),
 						status: m.isError ? ToolResultStatus.ERROR : ToolResultStatus.SUCCESS,
 					},
 				});
@@ -737,11 +741,13 @@ function convertMessages(
 					toolResults.push({
 						toolResult: {
 							toolUseId: nextMsg.toolCallId,
-							content: nextMsg.content.map((c) =>
-								c.type === "image"
-									? { image: createImageBlock(c.mimeType, c.data) }
-									: { text: sanitizeSurrogates(c.text) },
-							),
+							content: nextMsg.content
+								.filter((c) => c.type !== "document")
+								.map((c) =>
+									c.type === "image"
+										? { image: createImageBlock(c.mimeType, c.data) }
+										: { text: sanitizeSurrogates((c as TextContent).text) },
+								),
 							status: nextMsg.isError ? ToolResultStatus.ERROR : ToolResultStatus.SUCCESS,
 						},
 					});

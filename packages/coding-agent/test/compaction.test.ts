@@ -1,5 +1,5 @@
 import type { AgentMessage } from "@earendil-works/pi-agent-core";
-import type { AssistantMessage, Usage } from "@earendil-works/pi-ai";
+import type { AssistantMessage, TextContent, Usage } from "@earendil-works/pi-ai";
 import { getModel } from "@earendil-works/pi-ai";
 import { readFileSync } from "fs";
 import { join } from "path";
@@ -158,8 +158,8 @@ function extractText(messages: AgentMessage[]): string {
 					return typeof message.content === "string"
 						? message.content
 						: message.content
-								.filter((block): block is { type: "text"; text: string } => block.type === "text")
-								.map((block) => block.text)
+								.filter((block) => block.type === "text")
+								.map((block) => (block as TextContent).text)
 								.join(" ");
 				case "bashExecution":
 					return `${message.command}\n${message.output}`;
