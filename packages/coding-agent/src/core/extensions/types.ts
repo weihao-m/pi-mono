@@ -1941,7 +1941,7 @@ interface ProviderModelConfigBase {
 	/** API endpoint URL override for this model. */
 	baseUrl?: string;
 	/** Supported input types. */
-	input: ("text" | "image")[];
+	input: ("text" | "image" | "document")[];
 	/** Provider input limits and cache-safe image preprocessing metadata. */
 	inputLimits?: AnyModel["inputLimits"];
 	/** Per-million-token cost rates and optional request-wide input pricing tiers. */
