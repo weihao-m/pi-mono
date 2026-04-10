@@ -28,6 +28,7 @@ import { AssistantMessageEventStream } from "../utils/event-stream.js";
 import { parseStreamingJson } from "../utils/json-parse.js";
 import { sanitizeSurrogates } from "../utils/sanitize-unicode.js";
 
+import { withStreamIdleTimeout } from "../utils/stream-idle-timeout.js";
 import { buildCopilotDynamicHeaders, hasCopilotVisionInput } from "./github-copilot-headers.js";
 import { adjustMaxTokensForThinking, buildBaseOptions } from "./simple-options.js";
 import { transformMessages } from "./transform-messages.js";
@@ -262,7 +263,7 @@ export const streamAnthropic: StreamFunction<"anthropic-messages", AnthropicOpti
 			type Block = (ThinkingContent | TextContent | (ToolCall & { partialJson: string })) & { index: number };
 			const blocks = output.content as Block[];
 
-			for await (const event of anthropicStream) {
+			for await (const event of withStreamIdleTimeout(anthropicStream, options?.streamIdleTimeoutMs)) {
 				if (event.type === "message_start") {
 					output.responseId = event.message.id;
 					// Capture initial token usage from message_start event

@@ -12,6 +12,7 @@ import type {
 	StreamOptions,
 } from "../types.js";
 import { AssistantMessageEventStream } from "../utils/event-stream.js";
+import { withStreamIdleTimeout } from "../utils/stream-idle-timeout.js";
 import { convertResponsesMessages, convertResponsesTools, processResponsesStream } from "./openai-responses-shared.js";
 import { buildBaseOptions, clampReasoning } from "./simple-options.js";
 
@@ -96,7 +97,12 @@ export const streamAzureOpenAIResponses: StreamFunction<"azure-openai-responses"
 			);
 			stream.push({ type: "start", partial: output });
 
-			await processResponsesStream(openaiStream, output, stream, model);
+			await processResponsesStream(
+				withStreamIdleTimeout(openaiStream, options?.streamIdleTimeoutMs),
+				output,
+				stream,
+				model,
+			);
 
 			if (options?.signal?.aborted) {
 				throw new Error("Request was aborted");

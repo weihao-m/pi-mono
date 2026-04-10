@@ -43,6 +43,7 @@ import type {
 import { AssistantMessageEventStream } from "../utils/event-stream.js";
 import { parseStreamingJson } from "../utils/json-parse.js";
 import { sanitizeSurrogates } from "../utils/sanitize-unicode.js";
+import { withStreamIdleTimeout } from "../utils/stream-idle-timeout.js";
 import { adjustMaxTokensForThinking, buildBaseOptions, clampReasoning } from "./simple-options.js";
 import { transformMessages } from "./transform-messages.js";
 
@@ -169,7 +170,7 @@ export const streamBedrock: StreamFunction<"bedrock-converse-stream", BedrockOpt
 
 			const response = await client.send(command, { abortSignal: options.signal });
 
-			for await (const item of response.stream!) {
+			for await (const item of withStreamIdleTimeout(response.stream!, options?.streamIdleTimeoutMs)) {
 				if (item.messageStart) {
 					if (item.messageStart.role !== ConversationRole.ASSISTANT) {
 						throw new Error("Unexpected assistant message start but got user message start instead");

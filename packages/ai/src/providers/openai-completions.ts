@@ -29,6 +29,7 @@ import type {
 import { AssistantMessageEventStream } from "../utils/event-stream.js";
 import { parseStreamingJson } from "../utils/json-parse.js";
 import { sanitizeSurrogates } from "../utils/sanitize-unicode.js";
+import { withStreamIdleTimeout } from "../utils/stream-idle-timeout.js";
 import { buildCopilotDynamicHeaders, hasCopilotVisionInput } from "./github-copilot-headers.js";
 import { buildBaseOptions, clampReasoning } from "./simple-options.js";
 import { transformMessages } from "./transform-messages.js";
@@ -126,7 +127,7 @@ export const streamOpenAICompletions: StreamFunction<"openai-completions", OpenA
 				}
 			};
 
-			for await (const chunk of openaiStream) {
+			for await (const chunk of withStreamIdleTimeout(openaiStream, options?.streamIdleTimeoutMs)) {
 				if (!chunk || typeof chunk !== "object") continue;
 
 				// OpenAI documents ChatCompletionChunk.id as the unique chat completion identifier,

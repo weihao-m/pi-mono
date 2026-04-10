@@ -22,6 +22,7 @@ import type {
 } from "../types.js";
 import { AssistantMessageEventStream } from "../utils/event-stream.js";
 import { sanitizeSurrogates } from "../utils/sanitize-unicode.js";
+import { withStreamIdleTimeout } from "../utils/stream-idle-timeout.js";
 import type { GoogleThinkingLevel } from "./google-gemini-cli.js";
 import {
 	convertMessages,
@@ -100,7 +101,7 @@ export const streamGoogleVertex: StreamFunction<"google-vertex", GoogleVertexOpt
 			let currentBlock: TextContent | ThinkingContent | null = null;
 			const blocks = output.content;
 			const blockIndex = () => blocks.length - 1;
-			for await (const chunk of googleStream) {
+			for await (const chunk of withStreamIdleTimeout(googleStream, options?.streamIdleTimeoutMs)) {
 				// Vertex uses the same @google/genai GenerateContentResponse type as Gemini.
 				// responseId is documented there as an output-only identifier for each response.
 				output.responseId ||= chunk.responseId;

@@ -14,6 +14,7 @@ import type {
 	Usage,
 } from "../types.js";
 import { AssistantMessageEventStream } from "../utils/event-stream.js";
+import { withStreamIdleTimeout } from "../utils/stream-idle-timeout.js";
 import { buildCopilotDynamicHeaders, hasCopilotVisionInput } from "./github-copilot-headers.js";
 import { convertResponsesMessages, convertResponsesTools, processResponsesStream } from "./openai-responses-shared.js";
 import { buildBaseOptions, clampReasoning } from "./simple-options.js";
@@ -100,10 +101,16 @@ export const streamOpenAIResponses: StreamFunction<"openai-responses", OpenAIRes
 			);
 			stream.push({ type: "start", partial: output });
 
-			await processResponsesStream(openaiStream, output, stream, model, {
-				serviceTier: options?.serviceTier,
-				applyServiceTierPricing,
-			});
+			await processResponsesStream(
+				withStreamIdleTimeout(openaiStream, options?.streamIdleTimeoutMs),
+				output,
+				stream,
+				model,
+				{
+					serviceTier: options?.serviceTier,
+					applyServiceTierPricing,
+				},
+			);
 
 			if (options?.signal?.aborted) {
 				throw new Error("Request was aborted");

@@ -27,6 +27,7 @@ import { AssistantMessageEventStream } from "../utils/event-stream.js";
 import { shortHash } from "../utils/hash.js";
 import { parseStreamingJson } from "../utils/json-parse.js";
 import { sanitizeSurrogates } from "../utils/sanitize-unicode.js";
+import { withStreamIdleTimeout } from "../utils/stream-idle-timeout.js";
 import { buildBaseOptions, clampReasoning } from "./simple-options.js";
 import { transformMessages } from "./transform-messages.js";
 
@@ -76,7 +77,12 @@ export const streamMistral: StreamFunction<"mistral-conversations", MistralOptio
 			}
 			const mistralStream = await mistral.chat.stream(payload, buildRequestOptions(model, options));
 			stream.push({ type: "start", partial: output });
-			await consumeChatStream(model, output, stream, mistralStream);
+			await consumeChatStream(
+				model,
+				output,
+				stream,
+				withStreamIdleTimeout(mistralStream, options?.streamIdleTimeoutMs),
+			);
 
 			if (options?.signal?.aborted) {
 				throw new Error("Request was aborted");

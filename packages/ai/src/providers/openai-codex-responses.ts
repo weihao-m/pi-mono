@@ -27,6 +27,7 @@ import type {
 	StreamOptions,
 } from "../types.js";
 import { AssistantMessageEventStream } from "../utils/event-stream.js";
+import { withStreamIdleTimeout } from "../utils/stream-idle-timeout.js";
 import { convertResponsesMessages, convertResponsesTools, processResponsesStream } from "./openai-responses-shared.js";
 import { buildBaseOptions, clampReasoning } from "./simple-options.js";
 
@@ -251,7 +252,7 @@ export const streamOpenAICodexResponses: StreamFunction<"openai-codex-responses"
 			}
 
 			stream.push({ type: "start", partial: output });
-			await processStream(response, output, stream, model);
+			await processStream(response, output, stream, model, options?.streamIdleTimeoutMs);
 
 			if (options?.signal?.aborted) {
 				throw new Error("Request was aborted");
@@ -366,8 +367,14 @@ async function processStream(
 	output: AssistantMessage,
 	stream: AssistantMessageEventStream,
 	model: Model<"openai-codex-responses">,
+	streamIdleTimeoutMs?: number,
 ): Promise<void> {
-	await processResponsesStream(mapCodexEvents(parseSSE(response)), output, stream, model);
+	await processResponsesStream(
+		withStreamIdleTimeout(mapCodexEvents(parseSSE(response)), streamIdleTimeoutMs),
+		output,
+		stream,
+		model,
+	);
 }
 
 async function* mapCodexEvents(events: AsyncIterable<Record<string, unknown>>): AsyncGenerator<ResponseStreamEvent> {
@@ -806,7 +813,12 @@ async function processWebSocketStream(
 		socket.send(JSON.stringify({ type: "response.create", ...body }));
 		onStart();
 		stream.push({ type: "start", partial: output });
-		await processResponsesStream(mapCodexEvents(parseWebSocket(socket, options?.signal)), output, stream, model);
+		await processResponsesStream(
+			withStreamIdleTimeout(mapCodexEvents(parseWebSocket(socket, options?.signal)), options?.streamIdleTimeoutMs),
+			output,
+			stream,
+			model,
+		);
 		if (options?.signal?.aborted) {
 			keepConnection = false;
 		}
