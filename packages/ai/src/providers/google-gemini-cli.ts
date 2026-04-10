@@ -6,6 +6,7 @@
 
 import type { Content, ThinkingConfig } from "@google/genai";
 import { calculateCost } from "../models.js";
+import { StreamIdleTimeoutError } from "../utils/stream-idle-timeout.js";
 import type {
 	Api,
 	AssistantMessage,
@@ -525,7 +526,23 @@ export const streamGoogleGeminiCli: StreamFunction<"google-gemini-cli", GoogleGe
 							throw new Error("Request was aborted");
 						}
 
-						const { done, value } = await reader.read();
+						let readResult: ReadableStreamReadResult<Uint8Array>;
+						if (options?.streamIdleTimeoutMs && options.streamIdleTimeoutMs > 0) {
+							let idleTimer: ReturnType<typeof setTimeout> | undefined;
+							readResult = await Promise.race([
+								reader.read(),
+								new Promise<never>((_, reject) => {
+									idleTimer = setTimeout(
+										() => reject(new StreamIdleTimeoutError(options.streamIdleTimeoutMs!)),
+										options.streamIdleTimeoutMs!,
+									);
+								}),
+							]);
+							clearTimeout(idleTimer);
+						} else {
+							readResult = await reader.read();
+						}
+						const { done, value } = readResult;
 						if (done) break;
 
 						buffer += decoder.decode(value, { stream: true });
