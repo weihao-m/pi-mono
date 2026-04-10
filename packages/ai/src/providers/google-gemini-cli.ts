@@ -526,10 +526,11 @@ export const streamGoogleGeminiCli: StreamFunction<"google-gemini-cli", GoogleGe
 							throw new Error("Request was aborted");
 						}
 
-						let readResult: ReadableStreamReadResult<Uint8Array>;
+						let done: boolean;
+						let value: Uint8Array | undefined;
 						if (options?.streamIdleTimeoutMs && options.streamIdleTimeoutMs > 0) {
 							let idleTimer: ReturnType<typeof setTimeout> | undefined;
-							readResult = await Promise.race([
+							const readResult = await Promise.race([
 								reader.read(),
 								new Promise<never>((_, reject) => {
 									idleTimer = setTimeout(
@@ -539,10 +540,13 @@ export const streamGoogleGeminiCli: StreamFunction<"google-gemini-cli", GoogleGe
 								}),
 							]);
 							clearTimeout(idleTimer);
+							done = readResult.done;
+							value = readResult.value;
 						} else {
-							readResult = await reader.read();
+							const readResult = await reader.read();
+							done = readResult.done;
+							value = readResult.value;
 						}
-						const { done, value } = readResult;
 						if (done) break;
 
 						buffer += decoder.decode(value, { stream: true });

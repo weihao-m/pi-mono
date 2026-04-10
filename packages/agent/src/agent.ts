@@ -106,6 +106,11 @@ export interface AgentOptions {
 	thinkingBudgets?: ThinkingBudgets;
 	transport?: Transport;
 	maxRetryDelayMs?: number;
+	/**
+	 * Maximum idle time in milliseconds to wait for a streaming chunk.
+	 * Passed through to the underlying pi-ai provider. Default: 0 (disabled).
+	 */
+	streamIdleTimeoutMs?: number;
 	toolExecution?: ToolExecutionMode;
 }
 
@@ -182,6 +187,8 @@ export class Agent {
 	public transport: Transport;
 	/** Optional cap for provider-requested retry delays. */
 	public maxRetryDelayMs?: number;
+	/** Maximum idle time (ms) before aborting a streaming connection. */
+	public streamIdleTimeoutMs?: number;
 	/** Tool execution strategy for assistant messages that contain multiple tool calls. */
 	public toolExecution: ToolExecutionMode;
 
@@ -200,6 +207,7 @@ export class Agent {
 		this.thinkingBudgets = options.thinkingBudgets;
 		this.transport = options.transport ?? "sse";
 		this.maxRetryDelayMs = options.maxRetryDelayMs;
+		this.streamIdleTimeoutMs = options.streamIdleTimeoutMs;
 		this.toolExecution = options.toolExecution ?? "parallel";
 	}
 
@@ -414,6 +422,7 @@ export class Agent {
 			transport: this.transport,
 			thinkingBudgets: this.thinkingBudgets,
 			maxRetryDelayMs: this.maxRetryDelayMs,
+			streamIdleTimeoutMs: this.streamIdleTimeoutMs,
 			toolExecution: this.toolExecution,
 			beforeToolCall: this.beforeToolCall,
 			afterToolCall: this.afterToolCall,
