@@ -1,4 +1,5 @@
 import type {
+	DocumentContent,
 	ImageContent,
 	Message,
 	Model,
@@ -346,14 +347,18 @@ export class Agent {
 
 	/** Start a new prompt from text, a single message, or a batch of messages. */
 	async prompt(message: AgentMessage | AgentMessage[]): Promise<void>;
-	async prompt(input: string, images?: ImageContent[]): Promise<void>;
-	async prompt(input: string | AgentMessage | AgentMessage[], images?: ImageContent[]): Promise<void> {
+	async prompt(input: string, images?: ImageContent[], documents?: DocumentContent[]): Promise<void>;
+	async prompt(
+		input: string | AgentMessage | AgentMessage[],
+		images?: ImageContent[],
+		documents?: DocumentContent[],
+	): Promise<void> {
 		if (this.activeRun) {
 			throw new Error(
 				"Agent is already processing a prompt. Use steer() or followUp() to queue messages, or wait for completion.",
 			);
 		}
-		const messages = this.normalizePromptInput(input, images);
+		const messages = this.normalizePromptInput(input, images, documents);
 		await this.runPromptMessages(messages);
 	}
 
@@ -390,6 +395,7 @@ export class Agent {
 	private normalizePromptInput(
 		input: string | AgentMessage | AgentMessage[],
 		images?: ImageContent[],
+		documents?: DocumentContent[],
 	): AgentMessage[] {
 		if (Array.isArray(input)) {
 			return input;
@@ -399,9 +405,12 @@ export class Agent {
 			return [input];
 		}
 
-		const content: Array<TextContent | ImageContent> = [{ type: "text", text: input }];
+		const content: Array<TextContent | ImageContent | DocumentContent> = [{ type: "text", text: input }];
 		if (images && images.length > 0) {
 			content.push(...images);
+		}
+		if (documents && documents.length > 0) {
+			content.push(...documents);
 		}
 		return [{ role: "user", content, timestamp: Date.now() }];
 	}

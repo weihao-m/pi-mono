@@ -116,7 +116,7 @@ const fromClaudeCodeName = (name: string, tools?: Tool[]) => {
 /**
  * Convert content blocks to Anthropic API format
  */
-function convertContentBlocks(content: (TextContent | ImageContent | DocumentContent)[]): string | ContentBlockParam[] {
+function convertContentBlocks(content: (TextContent | ImageContent | DocumentContent)[]): any {
 	// If only text blocks, return as concatenated string for simplicity
 	const hasNonText = content.some((c) => c.type === "image" || c.type === "document");
 	if (!hasNonText) {
@@ -995,6 +995,7 @@ function buildParams(
 		model: model.id,
 		messages: convertMessages(
 			transformedMessages,
+			model,
 			isOAuthToken,
 			cacheControl,
 			compat.allowEmptySignature,
@@ -1153,6 +1154,7 @@ function convertToolResult(
 
 function convertMessages(
 	transformedMessages: Message[],
+	model: Model<"anthropic-messages">,
 	isOAuthToken: boolean,
 	cacheControl?: CacheControlEphemeral,
 	allowEmptySignature = false,
