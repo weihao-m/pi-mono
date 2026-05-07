@@ -118,18 +118,15 @@ export function convertMessages<T extends GoogleApiType>(model: Model<T>, contex
 						};
 					}
 				});
-				let filteredParts = !model.input.includes("image")
+				// Reason: Only filter images when model doesn't support them. Documents
+				// (PDFs, etc.) always pass through — Gemini accepts any MIME type in
+				// inlineData, and the model definitions don't yet declare "document" support.
+				const filteredParts = !model.input.includes("image")
 					? parts.filter((p) => {
 							if (!p.inlineData?.mimeType) return true;
 							return !p.inlineData.mimeType.startsWith("image/");
 						})
 					: parts;
-				filteredParts = !model.input.includes("document")
-					? filteredParts.filter((p) => {
-							if (!p.inlineData?.mimeType) return true;
-							return p.inlineData.mimeType.startsWith("image/");
-						})
-					: filteredParts;
 				if (filteredParts.length === 0) continue;
 				contents.push({
 					role: "user",

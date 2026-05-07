@@ -1023,10 +1023,9 @@ function convertMessages(
 						};
 					}
 				});
+				// Reason: Only filter images when model doesn't support them. Documents
+				// always pass through — model definitions don't yet declare "document".
 				let filteredBlocks = !model?.input.includes("image") ? blocks.filter((b) => b.type !== "image") : blocks;
-				filteredBlocks = !model?.input.includes("document")
-					? filteredBlocks.filter((b) => b.type !== "document")
-					: filteredBlocks;
 				filteredBlocks = filteredBlocks.filter((b) => {
 					if (b.type === "text") {
 						return b.text.trim().length > 0;
