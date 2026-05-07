@@ -120,7 +120,7 @@ const fromClaudeCodeName = (name: string, tools?: Tool[]) => {
 /**
  * Convert content blocks to Anthropic API format
  */
-function convertContentBlocks(content: (TextContent | ImageContent | DocumentContent)[]): string | ContentBlockParam[] {
+function convertContentBlocks(content: (TextContent | ImageContent | DocumentContent)[]): any {
 	// If only text blocks, return as concatenated string for simplicity
 	const hasNonText = content.some((c) => c.type === "image" || c.type === "document");
 	if (!hasNonText) {
@@ -1040,6 +1040,7 @@ function buildParams(
 	const deferredToolNames = new Set(deferredTools.map((tool) => normalizeToolName(tool.name)));
 	const converted = convertMessages(
 		transformedMessages,
+		model,
 		isOAuthToken,
 		cacheControl,
 		compat.allowEmptySignature,
@@ -1220,6 +1221,7 @@ interface ConvertedAnthropicMessages {
 
 function convertMessages(
 	transformedMessages: Message[],
+	model: Model<"anthropic-messages">,
 	isOAuthToken: boolean,
 	cacheControl?: CacheControlEphemeral,
 	allowEmptySignature = false,
