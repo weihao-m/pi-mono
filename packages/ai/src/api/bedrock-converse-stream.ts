@@ -705,13 +705,11 @@ function convertToolResultContent(content: (TextContent | ImageContent | Documen
 	for (const c of content) {
 		if (c.type === "image") {
 			result.push({ image: createImageBlock(c.mimeType, c.data) });
-		} else if (c.type === "document") {
-			// Bedrock Converse does not support documents in tool results; skip them.
-			continue;
-		} else {
+		} else if (c.type === "text") {
 			const textBlock = createNonBlankTextBlock(c.text);
 			if (textBlock) result.push(textBlock);
 		}
+		// Bedrock Converse does not support documents in tool results; skip them.
 	}
 	if (result.length === 0) result.push({ text: EMPTY_TEXT_PLACEHOLDER });
 	return result;
