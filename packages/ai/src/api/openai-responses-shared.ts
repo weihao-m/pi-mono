@@ -17,6 +17,7 @@ import { calculateCost } from "../models.ts";
 import type {
 	Api,
 	AssistantMessage,
+	DocumentContent,
 	ImageContent,
 	Model,
 	StopReason,
@@ -79,7 +80,7 @@ type ToolResultOutputContent = Array<ResponseInputText | ResponseInputImage>;
 
 function convertToolResultOutput<TApi extends Api>(
 	model: Model<TApi>,
-	content: readonly (TextContent | ImageContent)[],
+	content: readonly (TextContent | ImageContent | DocumentContent)[],
 ): string | ToolResultOutputContent {
 	const textResult = content
 		.filter((c): c is TextContent => c.type === "text")
@@ -251,12 +252,11 @@ export function convertResponsesMessages<TApi extends Api>(
 						image_url: `data:${item.mimeType};base64,${item.data}`,
 					} satisfies ResponseInputImage;
 				});
-				let filteredContent = !model.input.includes("image")
+				// Reason: Only filter images when model doesn't support them. Documents
+				// always pass through — model definitions don't yet declare "document".
+				const filteredContent = !model.input.includes("image")
 					? content.filter((c) => c.type !== "input_image")
 					: content;
-				filteredContent = !model.input.includes("document")
-					? filteredContent.filter((c) => (c as any).type !== "input_file")
-					: filteredContent;
 				if (filteredContent.length === 0) continue;
 				messages.push({
 					role: "user",
