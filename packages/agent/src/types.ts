@@ -3,6 +3,7 @@ import type {
 	AssistantMessage,
 	AssistantMessageEvent,
 	AssistantMessageEventStream,
+	DocumentContent,
 	ImageContent,
 	JsonValue,
 	Message,
@@ -381,8 +382,8 @@ export interface AgentState {
 
 /** Final or partial result produced by a tool. */
 export interface AgentToolResult<T = JsonValue | undefined> {
-	/** Text or image content returned to the model. */
-	content: (TextContent | ImageContent)[];
+	/** Text, image, or document content returned to the model. */
+	content: (TextContent | ImageContent | DocumentContent)[];
 	/** Arbitrary structured details for logs or UI rendering. */
 	details: T;
 	/** Usage from the final tool execution itself, if available. Not used for main LLM context accounting. */
