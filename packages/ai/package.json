@@ -42,6 +42,10 @@
 		"./bun-oauth": {
 			"types": "./dist/bun-oauth.d.ts",
 			"import": "./dist/bun-oauth.js"
+		},
+		"./browser-oauth": {
+			"types": "./dist/browser-oauth.d.ts",
+			"import": "./dist/browser-oauth.js"
 		}
 	},
 	"bin": {
