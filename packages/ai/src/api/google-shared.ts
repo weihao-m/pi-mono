@@ -213,6 +213,7 @@ export function convertMessages<T extends GoogleApiType>(model: Model<T>, contex
 					if (item.type === "text") {
 						return { text: sanitizeSurrogates(item.text) };
 					} else {
+						// Both ImageContent and DocumentContent use inlineData with their mimeType
 						return {
 							inlineData: {
 								mimeType: item.mimeType,
@@ -221,10 +222,19 @@ export function convertMessages<T extends GoogleApiType>(model: Model<T>, contex
 						};
 					}
 				});
-				if (parts.length === 0) continue;
+				// Reason: Only filter images when model doesn't support them. Documents
+				// (PDFs, etc.) always pass through — Gemini accepts any MIME type in
+				// inlineData, and the model definitions don't yet declare "document" support.
+				const filteredParts = !model.input.includes("image")
+					? parts.filter((p) => {
+							if (!p.inlineData?.mimeType) return true;
+							return !p.inlineData.mimeType.startsWith("image/");
+						})
+					: parts;
+				if (filteredParts.length === 0) continue;
 				contents.push({
 					role: "user",
-					parts,
+					parts: filteredParts,
 				});
 			}
 		} else if (msg.role === "assistant") {

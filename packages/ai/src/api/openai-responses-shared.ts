@@ -18,6 +18,7 @@ import { calculateCost } from "../models.ts";
 import type {
 	Api,
 	AssistantMessage,
+	DocumentContent,
 	ImageContent,
 	Model,
 	StopReason,
@@ -81,7 +82,7 @@ type ToolResultOutputContent = Array<ResponseInputText | ResponseInputImage>;
 
 function convertToolResultOutput<TApi extends Api>(
 	model: Model<TApi>,
-	content: readonly (TextContent | ImageContent)[],
+	content: readonly (TextContent | ImageContent | DocumentContent)[],
 ): string | ToolResultOutputContent {
 	const textResult = content
 		.filter((c): c is TextContent => c.type === "text")
@@ -257,16 +258,28 @@ export function convertResponsesMessages<TApi extends Api>(
 							text: sanitizeSurrogates(item.text),
 						} satisfies ResponseInputText;
 					}
+					if (item.type === "document") {
+						return {
+							type: "input_file",
+							file_data: `data:${item.mimeType};base64,${item.data}`,
+							...(item.filename && { filename: item.filename }),
+						} as ResponseInputContent;
+					}
 					return {
 						type: "input_image",
 						detail: "auto",
 						image_url: `data:${item.mimeType};base64,${item.data}`,
 					} satisfies ResponseInputImage;
 				});
-				if (content.length === 0) continue;
+				// Reason: Only filter images when model doesn't support them. Documents
+				// always pass through — model definitions don't yet declare "document".
+				const filteredContent = !model.input.includes("image")
+					? content.filter((c) => c.type !== "input_image")
+					: content;
+				if (filteredContent.length === 0) continue;
 				messages.push({
 					role: "user",
-					content,
+					content: filteredContent,
 				});
 			}
 		} else if (msg.role === "assistant") {

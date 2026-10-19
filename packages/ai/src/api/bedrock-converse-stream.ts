@@ -31,6 +31,7 @@ import type {
 	Api,
 	AssistantMessage,
 	CacheRetention,
+	DocumentContent,
 	ImageContent,
 	JsonObject,
 	JsonValue,
@@ -959,15 +960,16 @@ function sanitizeBedrockDocument(value: JsonValue): DocumentType {
 	return value;
 }
 
-function convertToolResultContent(content: (TextContent | ImageContent)[]): ToolResultContentBlock[] {
+function convertToolResultContent(content: (TextContent | ImageContent | DocumentContent)[]): ToolResultContentBlock[] {
 	const result: ToolResultContentBlock[] = [];
 	for (const c of content) {
 		if (c.type === "image") {
 			result.push({ image: createImageBlock(c.mimeType, c.data) });
-		} else {
+		} else if (c.type === "text") {
 			const textBlock = createNonBlankTextBlock(c.text);
 			if (textBlock) result.push(textBlock);
 		}
+		// Bedrock Converse does not support documents in tool results; skip them.
 	}
 	if (result.length === 0) result.push({ text: EMPTY_TEXT_PLACEHOLDER });
 	return result;

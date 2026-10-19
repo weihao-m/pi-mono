@@ -7,7 +7,7 @@ type ModelFields = {
 	name: string;
 	provider: string;
 	reasoning: boolean;
-	input: Array<"text" | "image">;
+	input: Model<Api>["input"];
 	cost: { input: number; output: number; cacheRead: number; cacheWrite: number };
 	contextWindow: number;
 	maxTokens: number;
