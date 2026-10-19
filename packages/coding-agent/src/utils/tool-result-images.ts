@@ -1,7 +1,7 @@
-import type { ImageContent, ModelImageResizeOptions, TextContent } from "@earendil-works/pi-ai";
+import type { ModelImageResizeOptions, ToolResultMessage } from "@earendil-works/pi-ai";
 import { processImage } from "./image-process.ts";
 
-export type ToolResultContent = TextContent | ImageContent;
+export type ToolResultContent = ToolResultMessage["content"][number];
 
 export interface NormalizeToolResultImagesOptions {
 	/** Whether oversized images are resized to inline provider limits. Default: true */

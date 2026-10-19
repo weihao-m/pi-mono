@@ -1,6 +1,7 @@
 import type {
 	Api,
 	AssistantMessage,
+	DocumentContent,
 	ImageContent,
 	Message,
 	Model,
@@ -16,7 +17,7 @@ const ERROR_TOOL_IMAGE_PLACEHOLDER = "(image attached after the tool results)";
 /** An error tool result split into a text-only result and the images to send after the tool results. */
 export interface SplitErrorToolResult {
 	/** The result content with each run of images replaced by a note. */
-	content: TextContent[];
+	content: (TextContent | DocumentContent)[];
 	/** Text naming the tool call, to send before `images`. */
 	caption: string;
 	images: ImageContent[];
@@ -39,8 +40,11 @@ export function splitErrorToolResultImages(msg: ToolResultMessage): SplitErrorTo
 	};
 }
 
-function replaceImagesWithPlaceholder(content: (TextContent | ImageContent)[], placeholder: string): TextContent[] {
-	const result: TextContent[] = [];
+function replaceImagesWithPlaceholder(
+	content: (TextContent | ImageContent | DocumentContent)[],
+	placeholder: string,
+): (TextContent | DocumentContent)[] {
+	const result: (TextContent | DocumentContent)[] = [];
 	let previousWasPlaceholder = false;
 
 	for (const block of content) {
@@ -53,7 +57,7 @@ function replaceImagesWithPlaceholder(content: (TextContent | ImageContent)[], p
 		}
 
 		result.push(block);
-		previousWasPlaceholder = block.text === placeholder;
+		previousWasPlaceholder = block.type === "text" && block.text === placeholder;
 	}
 
 	return result;

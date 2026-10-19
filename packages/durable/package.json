@@ -108,7 +108,13 @@
 			"import": "./dist/testing/index.js",
 			"default": "./dist/testing/index.js"
 		},
-		"./package.json": "./package.json"
+		"./package.json": "./package.json",
+		"./truncate": {
+			"source": "./src/truncate.ts",
+			"types": "./dist/truncate.d.ts",
+			"import": "./dist/truncate.js",
+			"default": "./dist/truncate.js"
+		}
 	},
 	"sideEffects": false,
 	"files": [
