@@ -1282,6 +1282,7 @@ export function convertMessages(
 				});
 			} else {
 				const content: ChatCompletionContentPart[] = msg.content
+					.filter((item) => item.type !== "document")
 					.filter((item) => item.type !== "text" || item.text.length > 0)
 					.map((item): ChatCompletionContentPart => {
 						if (item.type === "text") {

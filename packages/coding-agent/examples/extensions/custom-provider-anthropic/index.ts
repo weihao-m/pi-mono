@@ -32,7 +32,6 @@ import {
 	createAssistantMessageEventStream,
 	getCurrentSystemPrompt,
 	getCurrentTools,
-	type ImageContent,
 	type Message,
 	type Model,
 	type OAuthCredentials,
@@ -190,8 +189,12 @@ function sanitizeSurrogates(text: string): string {
 }
 
 function convertContentBlocks(
-	content: (TextContent | ImageContent)[],
+	content: ToolResultMessage["content"],
 ): string | Array<{ type: "text"; text: string } | { type: "image"; source: any }> {
+	// This simplified example advertises text and images, so describe unsupported documents.
+	content = content.map((block) =>
+		block.type === "document" ? { type: "text", text: `[Document: ${block.filename ?? block.mimeType}]` } : block,
+	);
 	const hasImages = content.some((c) => c.type === "image");
 	if (!hasImages) {
 		return sanitizeSurrogates(content.map((c) => (c as TextContent).text).join("\n"));

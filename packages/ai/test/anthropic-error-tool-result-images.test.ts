@@ -47,9 +47,9 @@ const assistant: AssistantMessage = {
 	timestamp: Date.now(),
 };
 
-async function capturePayload(context: Context): Promise<AnthropicPayload> {
+async function capturePayload(context: Context, selectedModel = model): Promise<AnthropicPayload> {
 	let capturedPayload: AnthropicPayload | undefined;
-	const stream = streamSimple(model, context, {
+	const stream = streamSimple(selectedModel, context, {
 		apiKey: "fake-key",
 		cacheRetention: "none",
 		onPayload: (payload) => {
@@ -65,6 +65,40 @@ async function capturePayload(context: Context): Promise<AnthropicPayload> {
 const image = (data: string) => ({ type: "image", source: { type: "base64", media_type: "image/png", data } });
 
 describe("Anthropic error tool results with images", () => {
+	it("preserves a native PDF returned by a tool for a document-capable model", async () => {
+		const payload = await capturePayload(
+			{
+				messages: [
+					{ role: "user", content: "Read the PDF", timestamp: 1 },
+					{ ...assistant, content: [assistant.content[1]] },
+					{
+						role: "toolResult",
+						toolCallId: "call-2",
+						toolName: "read",
+						content: [
+							{ type: "document", mimeType: "application/pdf", data: "JVBERg==", filename: "report.pdf" },
+						],
+						isError: false,
+						timestamp: 2,
+					},
+				],
+			},
+			{ ...model, input: ["text", "image", "document"] },
+		);
+		expect(payload.messages[2]).toMatchObject({
+			role: "user",
+			content: [
+				{
+					type: "tool_result",
+					tool_use_id: "call-2",
+					content: [
+						{ type: "text", text: "(see attached content)" },
+						{ type: "document", source: { type: "base64", media_type: "application/pdf", data: "JVBERg==" } },
+					],
+				},
+			],
+		});
+	});
 	// Regression for #10794: Anthropic rejects error tool results that contain images.
 	it("moves the images after the tool results of the turn", async () => {
 		const payload = await capturePayload({
