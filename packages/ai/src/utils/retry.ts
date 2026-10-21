@@ -90,6 +90,8 @@ const RETRYABLE_PROVIDER_ERROR_PATTERN = buildProviderErrorPattern([
 	"connection.?closed",
 	"other side closed",
 	"fetch failed",
+	// Chrome fetch() errors; exclude similarly worded module/configuration failures.
+	"^(?:TypeError: )?Failed to fetch$",
 	// node-fetch system errors, e.g. the Google ADC OAuth token refresh used by
 	// google-vertex. The reason is often empty (#10996).
 	"request to \\S+ failed, reason:",
