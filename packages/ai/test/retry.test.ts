@@ -42,6 +42,18 @@ describe("provider retry classification", () => {
 		).toBe(true);
 	});
 
+	it.each(["Failed to fetch", "TypeError: Failed to fetch"])("matches Chrome fetch failures: %s", (errorMessage) => {
+		expect(isRetryableAssistantError(fauxAssistantMessage("", { stopReason: "error", errorMessage }))).toBe(true);
+	});
+
+	it.each([
+		"Failed to fetch dynamically imported module: https://example.com/module.js",
+		"TypeError: Failed to fetch dynamically imported module: https://example.com/module.js",
+		"Failed to fetch configuration",
+	])("keeps other failed fetch operations non-retryable: %s", (errorMessage) => {
+		expect(isRetryableAssistantError(fauxAssistantMessage("", { stopReason: "error", errorMessage }))).toBe(false);
+	});
+
 	it("matches upstream request buffer exhaustion wording", () => {
 		expect(
 			isRetryableAssistantError(
