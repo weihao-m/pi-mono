@@ -99,11 +99,18 @@ for (const entry of [...(await root.entries({}, 20, undefined, context)).items].
 	if (UserEntry.is(entry)) {
 		const content = (message as UserMessage).content;
 		if (typeof content === "string") continue;
-		for (const item of content) console.log("user:", item.type === "image" ? size(item) : JSON.stringify(item.text));
+		for (const item of content)
+			console.log(
+				"user:",
+				item.type === "image" ? size(item) : item.type === "text" ? JSON.stringify(item.text) : item.type,
+			);
 	}
 	if (message?.role === "toolResult") {
 		for (const item of (message as ToolResultMessage).content)
-			console.log("tool result:", item.type === "image" ? size(item) : JSON.stringify(item.text));
+			console.log(
+				"tool result:",
+				item.type === "image" ? size(item) : item.type === "text" ? JSON.stringify(item.text) : item.type,
+			);
 	}
 }
 await harness.close(context);

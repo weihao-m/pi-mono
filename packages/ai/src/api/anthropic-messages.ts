@@ -457,6 +457,7 @@ function recordThreadReply(
 	// (transformMessages adds placeholder results for trailing tool calls).
 	const reply = convertMessages(
 		transformMessages([output], model, normalizeToolCallId),
+		model,
 		isOAuth,
 		undefined,
 		allowEmptySignature,
